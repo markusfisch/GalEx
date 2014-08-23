@@ -9,7 +9,7 @@
 
 body
 {
-	background: #000;
+	background: #000; color: #fff;
 	margin: 0; padding: 0;
 	overflow: hidden;
 	-ms-touch-action: none;
@@ -30,7 +30,7 @@ canvas
 	right: 0; bottom: 0;
 	width: 100%; height: 100%;
 	padding: 0;
-	background: #fff;
+	background: #111;
 	-webkit-transform-style: preserve-3d;
 	-moz-transform-style: preserve-3d;
 	transform-style: preserve-3d;
@@ -45,7 +45,7 @@ canvas
 	transform: translateY( -50% );
 	max-width: 40em;
 	margin: 0 auto; padding: 1em;
-	font: 16pt sans-serif; color: #333;
+	font: 16pt sans-serif; color: #fff;
 	font-weight: lighter;
 	letter-spacing: .2em;
 	line-height: 150%;
@@ -61,6 +61,9 @@ canvas
 
 "use strict";
 
+Math.PI2 = Math.PI2 || Math.PI/2;
+Math.TAU = Math.TAU || Math.PI*2;
+
 var requestAnimFrame =
 		window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
@@ -72,10 +75,11 @@ var requestAnimFrame =
 			window.setTimeout( callback, 16 );
 		},
 	resources = {
-		item: { rect: {/*item*/x:0,y:0,w:256,h:256} },
-		// you may use "mirror" or "upsideDown" to transform
-		// the sprite to save bandwidth
-		meti: { rect: {/*item*/x:0,y:0,w:256,h:256}, mirror: true },
+		ship: { rect: {/*ship*/x:127,y:0,w:76,h:85}, rotate: true },
+		world: { rect: {/*world*/x:0,y:0,w:127,h:127} },
+		star: { rect: {/*star*/x:203,y:0,w:9,h:9} },
+		exhaust: { rect: {/*exhaust*/x:127,y:85,w:42,h:42} },
+		mail: { rect: {/*mail*/x:169,y:85,w:34,h:34} },
 	},
 	atlas,
 	message,
@@ -85,13 +89,39 @@ var requestAnimFrame =
 	ratio,
 	width,
 	height,
+	centerX,
+	centerY,
+	gridCellSize,
+	orientationsLength = 72,
+	orientationFactor = orientationsLength/Math.TAU,
+	scaleFactor,
 	sprites = [],
 	now,
 	last,
 	factor,
 	pointerLength = 0,
 	pointerX = [],
-	pointerY = [];
+	pointerY = [],
+	keysDown = [],
+	starsLength = 100,
+	stars = [],
+	objectsLength,
+	objects = [],
+	exhaustsLength = 20,
+	exhaustsNext,
+	exhaustsCursor,
+	exhausts = [],
+	mailsDelivered,
+	mailsLength = 10,
+	mailsCursor,
+	mails = [],
+	shipAlive,
+	shipAngle,
+	shipVx,
+	shipVy,
+	shipX,
+	shipY,
+	maxV = 6;
 
 function drawSprite( sprite, x, y )
 {
@@ -101,29 +131,379 @@ function drawSprite( sprite, x, y )
 		(y-sprite.centerY) | 0 );
 }
 
+function drawMails( x, y )
+{
+	for( var n = mailsLength; n--; )
+	{
+		var m = mails[n];
+
+		if( m.live < now )
+			continue;
+
+		m.x += m.vx;
+		m.y += m.vy;
+
+		if( Math.abs( m.tx-m.x ) < 4 &&
+			Math.abs( m.ty-m.y ) < 4 )
+		{
+			++mailsDelivered;
+			m.live = 0;
+			continue;
+		}
+
+		drawSprite(
+			sprites.mail,
+			centerX+(m.x-x),
+			centerY+(m.y-y) );
+	}
+}
+
+function drawObjects( x, y )
+{
+	for( var n = objectsLength; n--; )
+	{
+		var o = objects[n];
+
+		drawSprite(
+			o.sprite,
+			centerX+(o.scaledX-x),
+			centerY+(o.scaledY-y) );
+	}
+}
+
+function drawExhausts( x, y )
+{
+	for( var n = exhaustsLength; n--; )
+	{
+		var e = exhausts[n];
+
+		if( e.live < now )
+			continue;
+
+		e.x += e.vx;
+		e.y += e.vy;
+
+		drawSprite(
+			sprites.exhaust,
+			centerX+(e.x-x),
+			centerY+(e.y-y) );
+	}
+}
+
+function drawStars()
+{
+	var vx = shipVx*scaleFactor,
+		vy = shipVy*scaleFactor;
+
+	for( var n = starsLength; n--; )
+	{
+		var s = stars[n],
+			x = s.x,
+			y = s.y;
+
+		x -= vx;
+		y -= vy;
+
+		if( x < 0 ||
+			x > width ||
+			y < 0 ||
+			y > height )
+		{
+			var p = 0,
+				range = width+height;
+
+			if( !(vx*100 | 0) )
+			{
+				range -= height;
+			}
+
+			if( !(vy*100 | 0) )
+			{
+				p = width;
+				range -= width;
+			}
+
+			p += range*Math.random() | 0;
+
+			if( p > width )
+			{
+				x = vx > 0 ? width : 0;
+				y = p-width;
+			}
+			else
+			{
+				x = p;
+				y = vy > 0 ? height : 0;
+			}
+		}
+
+		drawSprite( sprites.star, x, y );
+		s.x = x;
+		s.y = y;
+	}
+}
+
+function drawGrid( x, y )
+{
+	ctx.strokeStyle = "#111";
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+
+	for( var g = -(y % gridCellSize); g < height; )
+	{
+		ctx.moveTo( 0, g );
+		ctx.lineTo( width, g );
+		g += gridCellSize;
+	}
+
+	for( var g = -(x % gridCellSize); g < width; )
+	{
+		ctx.moveTo( g, 0 );
+		ctx.lineTo( g, height );
+		g += gridCellSize;
+	}
+
+	ctx.stroke();
+}
+
 function draw()
 {
 	ctx.clearRect( 0, 0, width, height );
 
+	var x = shipX*scaleFactor,
+		y = shipY*scaleFactor;
+
+	drawGrid( x, y );
+	drawStars();
+	drawExhausts( x, y );
+	drawObjects( x, y );
+	drawMails( x, y );
+
+	if( shipAlive )
+		drawSprite(
+			sprites.ship[orientationFactor*shipAngle | 0],
+			centerX,
+			centerY );
+}
+
+function exhaust()
+{
+	if( now < exhaustsNext )
+		return;
+
+	exhaustsNext = now+100;
+	exhaustsCursor = (exhaustsCursor+1) % exhaustsLength;
+
+	var e = exhausts[exhaustsCursor];
+	e.x = shipX*scaleFactor;
+	e.y = shipY*scaleFactor;
+	e.vx = -shipVx*.5*scaleFactor;
+	e.vy = -shipVy*.5*scaleFactor;
+	e.live = now+1000;
+}
+
+function thrust( power )
+{
+	var a = (shipAngle+Math.PI2) % Math.TAU,
+		p = power*scaleFactor*ratio*factor;
+
+	shipVx -= Math.cos( a )*p;
+	shipVy -= Math.sin( a )*p;
+
+	exhaust();
+}
+
+function turn( mod )
+{
+	shipAngle = (shipAngle+mod+Math.TAU) % Math.TAU;
+}
+
+function scalePositions()
+{
+	for( var n = objectsLength; n--; )
+	{
+		var o = objects[n];
+
+		o.sprite = sprites[o.spriteName];
+		o.scaledX = o.x*scaleFactor | 0;
+		o.scaledY = o.y*scaleFactor | 0;
+	}
+}
+
+function reset()
+{
+	shipX = shipY = shipVx = shipVy = shipAngle = 0;
+	shipAlive = true;
+
+	objectsLength = 7;
+
+	var d = 8*resources.ship.rect.h,
+		x = shipX,
+		y = shipY;
+
+	for( var n = objectsLength; n--; )
+	{
+		var r = resources.world.rect.w;
+
+		y -= d;
+		x = Math.sin( y )*d;
+
+		objects[n] = {
+			spriteName: "world",
+			delivered: false,
+			radius: r >> 1,
+			radiusMail: r << 1,
+			x: x,
+			y: y,
+			g: 2000 };
+	}
+
+	scalePositions();
+
+	exhaustsNext = exhaustsCursor = 0;
+
+	for( var n = exhaustsLength; n--; )
+		exhausts[n].live = 0;
+
+	mailsDelivered = mailsCursor = 0;
+
+	for( var n = mailsLength; n--; )
+		mails[n].live = 0;
 }
 
 function input()
 {
-	if( pointerLength > 0 )
+	if( !shipAlive )
 	{
-		// process touch/mouse input here
+		if( pointerLength > 0 ||
+			keysDown[32] ||
+			keysDown[13] )
+		{
+			message.style.display = "none";
+			reset();
+		}
+
+		return;
 	}
 
-	// process keyboard input here
+	var step = .05,
+		power = .25;
+
+	for( var n = pointerLength; n--; )
+	{
+		var x = pointerX[n]-centerX,
+			y = pointerY[n]-centerY,
+			a = Math.atan2( y, x )+Math.PI2,
+			d = ((shipAngle-a)+Math.TAU) % Math.TAU;
+
+		if( d > Math.PI )
+			d -= Math.TAU;
+
+		if( d > .1  )
+			turn( -step );
+		else if( d < .1 )
+			turn( step );
+
+		thrust( power );
+	}
+
+	if( keysDown[37] )
+		turn( -step );
+	else if( keysDown[39] )
+		turn( step );
+
+	if( keysDown[38] )
+		thrust( power );
+}
+
+function dropMail( tx, ty )
+{
+	mailsCursor = (mailsCursor+1) % mailsLength;
+
+	var m = mails[mailsCursor],
+		x = shipX*scaleFactor,
+		y = shipY*scaleFactor,
+		dx = tx-x,
+		dy = ty-y,
+		d = Math.sqrt( dx*dx + dy*dy );
+
+	m.tx = tx;
+	m.ty = ty;
+	m.x = x;
+	m.y = y;
+	m.vx = dx/d;
+	m.vy = dy/d;
+	m.live = now+now;
+}
+
+function gravity()
+{
+	if( !shipAlive )
+		return;
+
+	for( var n = objectsLength; n--; )
+	{
+		var o = objects[n],
+			dx = o.x-shipX,
+			dy = o.y-shipY,
+			d = Math.sqrt( dx*dx + dy*dy );
+
+		if( d < o.radius )
+		{
+			shipAlive = false;
+			shipVx = shipVy = 0;
+
+			message.text.innerHTML = "You crashed!";
+			message.style.display = "block";
+			break;
+		}
+		else if( d < o.radiusMail &&
+			!o.delivered )
+		{
+			o.delivered = true;
+			dropMail( o.scaledX, o.scaledY );
+		}
+
+		d /= o.g/(d*d);
+		d *= factor;
+
+		shipVx += dx/d,
+		shipVy += dy/d;
+	}
 }
 
 function run()
 {
 	now = new Date().getTime();
-	factor = (now-last)/1000;
+	factor = (now-last)/16;
 	last = now;
 
+	gravity();
 	input();
+
+	if( shipAlive )
+	{
+		if( shipVx > maxV )
+			shipVx = maxV;
+		else if( shipVx < -maxV )
+			shipVx = -maxV;
+
+		if( shipVy > maxV )
+			shipVy = maxV;
+		else if( shipVy < -maxV )
+			shipVy = -maxV;
+
+		shipX += shipVx;
+		shipY += shipVy;
+
+		if( mailsDelivered >= objectsLength )
+		{
+			shipAlive = false;
+			message.text.innerHTML = "You delivered all mail!";
+			message.style.display = "block";
+		}
+	}
+
 	draw();
 
 	requestAnimFrame( run );
@@ -192,7 +572,7 @@ function setKey( ev, pressed )
 {
 	var e = ev || event;
 
-	// evaluate e.keyCode to set flags you may evaluate in input()
+	keysDown[e.keyCode] = pressed;
 
 	e.preventDefault();
 	return false;
@@ -208,12 +588,72 @@ function keyDown( ev )
 	return setKey( ev, true );
 }
 
+function rotateSprite( res, rect, w, h )
+{
+	w = Math.max( 1, w );
+	h = Math.max( 1, h );
+
+	var step = Math.TAU/orientationsLength,
+		size = Math.max( w, h )*1.4142,
+		center = size >> 1,
+		a = [];
+
+	for( var o = orientationsLength; o--; )
+	{
+		var c = document.createElement( "canvas" ),
+			x = c.getContext( "2d" ),
+			angle = o*step;
+
+		c.width = size;
+		c.height = size;
+
+		c.centerX = center;
+		c.centerY = center;
+
+		if( res.mirror )
+		{
+			x.setTransform( -1, 0, 0, 1, 0, 0 );
+			x.translate( -center, center );
+			x.rotate( -angle );
+		}
+		else if( res.upsideDown )
+		{
+			x.setTransform( -1, 0, 0, -1, 0, 0 );
+			x.translate( -center, -center );
+			x.rotate( -angle );
+		}
+		else
+		{
+			x.translate( center, center );
+			x.rotate( angle );
+		}
+
+		x.drawImage(
+			atlas,
+			rect.x | 0,
+			rect.y | 0,
+			rect.w | 0,
+			rect.h | 0,
+			-w >> 1,
+			-h >> 1,
+			w | 0,
+			h | 0 );
+
+		a[o] = c;
+	}
+
+	return a;
+}
+
 function scaleSprite( frame, rect, w, h )
 {
 	var c = document.createElement( "canvas" ),
 		x = c.getContext( "2d" ),
 		l = 0,
 		t = 0;
+
+	w = Math.max( 1, w );
+	h = Math.max( 1, h );
 
 	c.width = w;
 	c.height = h;
@@ -249,18 +689,18 @@ function scaleSprite( frame, rect, w, h )
 
 function scale()
 {
-	// scale sprites relative to the viewport; in this sample the
-	// sprites are scaled to be one tenth of the viewport width
-	var scale = (width/10)/resources.item.rect.w;
+	scaleFactor = (Math.min( width, height )/20)/resources.ship.rect.h;
 
 	for( var name in resources )
 	{
 		var res = resources[name],
 			rc = res.rect,
-			w = rc.w*scale | 0,
-			h = rc.h*scale | 0;
+			w = rc.w*scaleFactor | 0,
+			h = rc.h*scaleFactor | 0;
 
-		sprites[name] = scaleSprite( res, rc, w, h );
+		sprites[name] = res.rotate ?
+			rotateSprite( res, rc, w, h ) :
+			scaleSprite( res, rc, w, h );
 	}
 }
 
@@ -272,12 +712,26 @@ function resize()
 	width = w*ratio | 0;
 	height = h*ratio | 0;
 
+	centerX = width >> 1;
+	centerY = height >> 1;
+
+	gridCellSize = Math.min( width, height ) >> 3;
+
+	for( var n = starsLength; n--; )
+	{
+		var s = stars[n];
+
+		s.x = Math.random()*width | 0;
+		s.y = Math.random()*height | 0;
+	}
+
 	canvas.width = width;
 	canvas.height = height;
 	canvas.style.width = w+"px";
 	canvas.style.height = h+"px";
 
 	scale();
+	scalePositions();
 
 	if( message.resizing )
 		message.style.display = "none";
@@ -288,7 +742,8 @@ function scheduleResize()
 	if( resizeTimer )
 		clearTimeout( resizeTimer );
 
-	if( message.started )
+	if( message.started &&
+		shipAlive )
 	{
 		message.resizing = true;
 		message.text.innerHTML = "Resizing...";
@@ -338,6 +793,17 @@ function init()
 		return;
 	}
 
+	for( var n = starsLength; n--; )
+		stars[n] = {};
+
+	for( var n = exhaustsLength; n--; )
+		exhausts[n] = { live: 0 };
+
+	for( var n = mailsLength; n--; )
+		mails[n] = { live: 0 };
+
+	reset();
+
 	resize();
 	window.onresize = scheduleResize;
 
@@ -346,7 +812,7 @@ function init()
 	message.text.innerHTML =
 		("ontouchstart" in d ? "Touch" : "Click")+" me!";
 
-	message.onclick = function( ev )
+	d.onkeyup = message.onclick = function( ev )
 	{
 		message.style.display = "none";
 		message.started = true;

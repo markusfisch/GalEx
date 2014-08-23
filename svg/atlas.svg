@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="128"
+   height="128"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="atlas.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#f0f0f0"
+     borderopacity="1"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.0664063"
+     inkscape:cx="-101.50915"
+     inkscape:cy="64"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:showpageshadow="false"
+     inkscape:window-width="1356"
+     inkscape:window-height="731"
+     inkscape:window-x="4"
+     inkscape:window-y="3"
+     inkscape:window-maximized="0"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-924.36218)">
+    <path
+       style="fill:#cccccc;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m -131.75092,789.79808 33.040294,74.08059 -66.080594,0 z"
+       id="rect2985"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/ship.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path3794"
+       sodipodi:cx="6.5641026"
+       sodipodi:cy="-68.92308"
+       sodipodi:rx="43.135532"
+       sodipodi:ry="43.135532"
+       d="m 49.699635,-68.92308 c 0,23.823096 -19.312436,43.135532 -43.1355324,43.135532 -23.8230966,0 -43.1355326,-19.312436 -43.1355326,-43.135532 0,-23.823097 19.312436,-43.13553 43.1355326,-43.13553 23.8230964,0 43.1355324,19.312433 43.1355324,43.13553 z"
+       transform="matrix(1.2826087,0,0,1.2826087,-2.7928012,918.52176)"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/world.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#cccccc;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path2984"
+       sodipodi:cx="167.38461"
+       sodipodi:cy="-83.457863"
+       sodipodi:rx="18.285713"
+       sodipodi:ry="18.285713"
+       d="m 185.67033,-83.457863 c 0,10.098921 -8.1868,18.285713 -18.28572,18.285713 -10.09892,0 -18.28571,-8.186792 -18.28571,-18.285713 0,-10.09892 8.18679,-18.285717 18.28571,-18.285717 10.09892,0 18.28572,8.186797 18.28572,18.285717 z"
+       transform="translate(-297.26006,1001.2559)"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/exhaust.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path2985"
+       sodipodi:cx="-88.146515"
+       sodipodi:cy="36.10257"
+       sodipodi:rx="4.6886444"
+       sodipodi:ry="4.6886444"
+       d="m -83.45787,36.10257 c 0,2.589466 -2.099178,4.688644 -4.688645,4.688644 -2.589467,0 -4.688644,-2.099178 -4.688644,-4.688644 0,-2.589467 2.099177,-4.688645 4.688644,-4.688645 2.589467,0 4.688645,2.099178 4.688645,4.688645 z"
+       transform="matrix(0.85312505,0,0,0.85312505,55.756779,810.32409)"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/star.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       inkscape:export-ydpi="103.44"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/ship.png"
+       sodipodi:nodetypes="cccc"
+       inkscape:connector-curvature="0"
+       id="path2986"
+       d="m -131.75092,789.79808 8.26007,18.52015 -16.52014,0 z"
+       style="fill:#aa0000;fill-opacity:1;fill-rule:nonzero;stroke:none" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#aa0000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path2987"
+       sodipodi:cx="-90.021973"
+       sodipodi:cy="60.483521"
+       sodipodi:rx="10.315018"
+       sodipodi:ry="10.315018"
+       d="m -79.706955,60.483521 c 0,5.696826 -4.618191,10.315017 -10.315018,10.315017 -5.696827,0 -10.315017,-4.618191 -10.315017,-10.315017 0,-5.696827 4.61819,-10.315018 10.315017,-10.315018 5.696827,0 10.315018,4.618191 10.315018,10.315018 z"
+       transform="matrix(1.4545455,0,0,1.4545455,45.607723,901.55831)"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/mail.png" />
+  </g>
+</svg>
