@@ -1,0 +1,410 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+<title>(ld30)</title>
+<link rel="shortcut icon" href="icon.png"/>
+<style>
+
+body
+{
+	background: #000;
+	margin: 0; padding: 0;
+	overflow: hidden;
+	-ms-touch-action: none;
+}
+
+canvas
+{
+	position: fixed;
+	left: 0; top: 0;
+	z-index: 1;
+}
+
+#Message
+{
+	position: fixed;
+	z-index: 9;
+	left: 0; top: 0;
+	right: 0; bottom: 0;
+	width: 100%; height: 100%;
+	padding: 0;
+	background: #fff;
+	-webkit-transform-style: preserve-3d;
+	-moz-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+
+#MessageText
+{
+	position: relative;
+	top: 50%;
+	-webkit-transform: translateY( -50% );
+	-ms-transform: translateY( -50% );
+	transform: translateY( -50% );
+	max-width: 40em;
+	margin: 0 auto; padding: 1em;
+	font: 16pt sans-serif; color: #333;
+	font-weight: lighter;
+	letter-spacing: .2em;
+	line-height: 150%;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+</style>
+<head>
+<body>
+<div id="Message"><div id="MessageText">Initializing...</div></div>
+<script>
+
+"use strict";
+
+var requestAnimFrame =
+		window.requestAnimationFrame ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		window.msRequestAnimationFrame ||
+		window.oRequestAnimationFrame ||
+		function( callback )
+		{
+			window.setTimeout( callback, 16 );
+		},
+	resources = {
+		item: { rect: {/*item*/x:0,y:0,w:256,h:256} },
+		// you may use "mirror" or "upsideDown" to transform
+		// the sprite to save bandwidth
+		meti: { rect: {/*item*/x:0,y:0,w:256,h:256}, mirror: true },
+	},
+	atlas,
+	message,
+	resizeTimer,
+	canvas,
+	ctx,
+	ratio,
+	width,
+	height,
+	sprites = [],
+	now,
+	last,
+	factor,
+	pointerLength = 0,
+	pointerX = [],
+	pointerY = [];
+
+function drawSprite( sprite, x, y )
+{
+	ctx.drawImage(
+		sprite,
+		(x-sprite.centerX) | 0,
+		(y-sprite.centerY) | 0 );
+}
+
+function draw()
+{
+	ctx.clearRect( 0, 0, width, height );
+
+}
+
+function input()
+{
+	if( pointerLength > 0 )
+	{
+		// process touch/mouse input here
+	}
+
+	// process keyboard input here
+}
+
+function run()
+{
+	now = new Date().getTime();
+	factor = (now-last)/1000;
+	last = now;
+
+	input();
+	draw();
+
+	requestAnimFrame( run );
+}
+
+function setPointers( ev, down )
+{
+	var e = ev || event;
+
+	if( !down )
+	{
+		// process other touches
+		if( e.touches &&
+			(down = e.touches.length) )
+			return setPointers( e, down );
+
+		pointerLength = 0;
+	}
+	else if( e.touches )
+	{
+		pointerLength = e.touches.length;
+
+		for( var n = 0; n < pointerLength; ++n )
+		{
+			var t = e.touches[n];
+
+			pointerX[n] = t.pageX*ratio | 0;
+			pointerY[n] = t.pageY*ratio | 0;
+		}
+	}
+	else if( typeof e.clientX !== "undefined" )
+	{
+		pointerX[0] = e.clientX*ratio | 0;
+		pointerY[0] = e.clientY*ratio | 0;
+		pointerLength = 1;
+	}
+	else if( typeof e.pageX !== "undefined" )
+	{
+		pointerX[0] = e.pageX*ratio | 0;
+		pointerY[0] = e.pageY*ratio | 0;
+		pointerLength = 1;
+	}
+
+	// to avoid overscrolling on iOS it's important to
+	// catch pointer events
+	e.preventDefault();
+	return false;
+}
+
+function pointerUp( ev )
+{
+	return setPointers( ev, 0 );
+}
+
+function pointerMove( ev )
+{
+	return setPointers( ev, pointerLength );
+}
+
+function pointerDown( ev )
+{
+	return setPointers( ev, 1 );
+}
+
+function setKey( ev, pressed )
+{
+	var e = ev || event;
+
+	// evaluate e.keyCode to set flags you may evaluate in input()
+
+	e.preventDefault();
+	return false;
+}
+
+function keyUp( ev )
+{
+	return setKey( ev, false );
+}
+
+function keyDown( ev )
+{
+	return setKey( ev, true );
+}
+
+function scaleSprite( frame, rect, w, h )
+{
+	var c = document.createElement( "canvas" ),
+		x = c.getContext( "2d" ),
+		l = 0,
+		t = 0;
+
+	c.width = w;
+	c.height = h;
+
+	c.centerX = w >> 1;
+	c.centerY = h >> 1;
+
+	if( frame.mirror )
+	{
+		x.setTransform( -1, 0, 0, 1, 0, 0 );
+		l = -w;
+	}
+	else if( frame.upsideDown )
+	{
+		x.setTransform( -1, 0, 0, -1, 0, 0 );
+		l = -w;
+		t = -h;
+	}
+
+	x.drawImage(
+		atlas,
+		rect.x | 0,
+		rect.y | 0,
+		rect.w | 0,
+		rect.h | 0,
+		l | 0,
+		t | 0,
+		w | 0,
+		h | 0 );
+
+	return c;
+}
+
+function scale()
+{
+	// scale sprites relative to the viewport; in this sample the
+	// sprites are scaled to be one tenth of the viewport width
+	var scale = (width/10)/resources.item.rect.w;
+
+	for( var name in resources )
+	{
+		var res = resources[name],
+			rc = res.rect,
+			w = rc.w*scale | 0,
+			h = rc.h*scale | 0;
+
+		sprites[name] = scaleSprite( res, rc, w, h );
+	}
+}
+
+function resize()
+{
+	var w = window.innerWidth,
+		h = window.innerHeight;
+
+	width = w*ratio | 0;
+	height = h*ratio | 0;
+
+	canvas.width = width;
+	canvas.height = height;
+	canvas.style.width = w+"px";
+	canvas.style.height = h+"px";
+
+	scale();
+
+	if( message.resizing )
+		message.style.display = "none";
+}
+
+function scheduleResize()
+{
+	if( resizeTimer )
+		clearTimeout( resizeTimer );
+
+	if( message.started )
+	{
+		message.resizing = true;
+		message.text.innerHTML = "Resizing...";
+		message.style.display = "block";
+	}
+
+	resizeTimer = setTimeout( resize, 200 );
+}
+
+function createCanvas()
+{
+	if( !(canvas = document.createElement( "canvas" )) ||
+		!(ctx = canvas.getContext( "2d", { alpha: false } )) )
+		return false;
+
+	document.body.appendChild( canvas );
+
+	ratio =
+		(window.devicePixelRatio || 1)/
+		(ctx.webkitBackingStorePixelRatio ||
+			ctx.mozBackingStorePixelRatio ||
+			ctx.msBackingStorePixelRatio ||
+			ctx.oBackingStorePixelRatio ||
+			ctx.backingStorePixelRatio ||
+			1);
+
+	return true;
+}
+
+function init()
+{
+	if( !atlas.complete ||
+		new Date().getTime()-last < 500 )
+	{
+		// give mobile browsers some time to settle
+		// their window.innerWidth/Height values, i.e.
+		// there may still be the virtual keyboard visible
+		setTimeout( init, 500 );
+		return;
+	}
+
+	if( !createCanvas() )
+	{
+		message.text.innerHTML =
+			"Sorry, this browser cannot run this game.";
+
+		return;
+	}
+
+	resize();
+	window.onresize = scheduleResize;
+
+	var d = document;
+
+	message.text.innerHTML =
+		("ontouchstart" in d ? "Touch" : "Click")+" me!";
+
+	message.onclick = function( ev )
+	{
+		message.style.display = "none";
+		message.started = true;
+
+		// don't use onclick() after that; it'll interfere
+		// with onmouse*/ontouch* events
+		message.onclick = function( ev )
+		{
+			(ev || event).preventDefault();
+			return false;
+		};
+
+		d.onkeydown = keyDown;
+		d.onkeyup = keyUp;
+
+		d.onmousedown = pointerDown;
+		d.onmousemove = pointerMove;
+		d.onmouseup = pointerUp;
+		d.onmouseout = pointerUp;
+
+		if( "ontouchstart" in d )
+		{
+			d.ontouchstart = pointerDown;
+			d.ontouchmove = pointerMove;
+			d.ontouchend = pointerUp;
+		}
+
+		run();
+
+		(ev || event).preventDefault();
+		return false;
+	};
+}
+
+function load()
+{
+	if( !(message = document.getElementById( "Message" )) ||
+		!(message.text = document.getElementById( "MessageText" )) )
+		return;
+
+	message.text.innerHTML = "Loading...";
+
+	last = new Date().getTime();
+
+	if( atlas &&
+		atlas.complete )
+	{
+		init();
+		return;
+	}
+
+	atlas = new Image();
+	atlas.src = "atlas.png";
+	atlas.onload = init;
+}
+
+window.onload = load;
+
+</script>
+</body>
+</html>
