@@ -53,6 +53,33 @@ canvas
 	text-transform: uppercase;
 }
 
+@media screen and (max-width: 900px), screen and (max-height: 560px)
+{
+	#MessageText
+	{
+		width: 90%;
+		font-size: 16pt;
+	}
+}
+
+@media screen and (max-width: 700px), screen and (max-height: 420px)
+{
+	#MessageText
+	{
+		width: 90%;
+		font-size: 10pt;
+	}
+}
+
+@media screen and (max-width: 360px), screen and (max-height: 360px)
+{
+	#MessageText
+	{
+		width: 90%;
+		font-size: 8pt;
+	}
+}
+
 </style>
 <head>
 <body>
@@ -75,15 +102,103 @@ var requestAnimFrame =
 			window.setTimeout( callback, 16 );
 		},
 	resources = {
-		ship: { rect: {/*ship*/x:127,y:0,w:76,h:85}, rotate: true },
-		world: { rect: {/*world*/x:0,y:0,w:127,h:127} },
-		star: { rect: {/*star*/x:203,y:0,w:9,h:9} },
-		exhaust: { rect: {/*exhaust*/x:127,y:85,w:42,h:42} },
-		mail: { rect: {/*mail*/x:169,y:85,w:34,h:34} },
+		ship: { rect: {/*ship*/x:296,y:0,w:80,h:89}, rotate: true },
+		debris: { rect: {/*debris*/x:442,y:0,w:43,h:65}, rotate: true },
+		world: { rect: {/*world*/x:165,y:0,w:131,h:131} },
+		star: { rect: {/*star*/x:442,y:103,w:13,h:13} },
+		exhaust: { rect: {/*exhaust*/x:376,y:89,w:46,h:46} },
+		mail: { rect: {/*mail*/x:442,y:65,w:38,h:38} },
+		arrow: { rect: {/*arrow*/x:376,y:0,w:66,h:89}, rotate: true },
+		check: { rect: {/*check*/x:0,y:0,w:165,h:138} },
 	},
+	defaultDistance = 8*resources.ship.rect.h,
+	level = 0,
+	levels = [
+		function()
+		{
+			objectsLength = 3;
+			fuel = 100000;
+
+			var x = shipX,
+				y = shipY;
+
+			for( var n = objectsLength; n--; )
+			{
+				var r = resources.world.rect.w;
+
+				y -= defaultDistance;
+
+				objects[n] = {
+					spriteName: "world",
+					delivered: false,
+					radius: r >> 1,
+					radiusMail: r << 1,
+					x: x,
+					y: y,
+					g: 2000 };
+
+				x = Math.sin( y )*defaultDistance;
+			}
+		},
+		function()
+		{
+			objectsLength = 7;
+			fuel = 1000;
+
+			var x = shipX,
+				y = shipY;
+
+			for( var n = objectsLength; n--; )
+			{
+				var r = resources.world.rect.w;
+
+				y -= defaultDistance;
+
+				objects[n] = {
+					spriteName: "world",
+					delivered: false,
+					radius: r >> 1,
+					radiusMail: r << 1,
+					x: x,
+					y: y,
+					g: 3000 };
+
+				x = Math.sin( y )*defaultDistance;
+			}
+		},
+		function()
+		{
+			objectsLength = 7;
+			fuel = 1000;
+
+			var x = shipX,
+				y = shipY,
+				step = Math.TAU/objectsLength,
+				a = 0,
+				r = resources.world.rect.w;
+
+			for( var n = objectsLength; n--; )
+			{
+				var d = Math.cos( a )*defaultDistance;
+
+				objects[n] = {
+					spriteName: "world",
+					delivered: false,
+					radius: r >> 1,
+					radiusMail: r << 1,
+					x: Math.cos( a )*d,
+					y: Math.sin( a )*d,
+					g: 3000 };
+
+				a += step;
+			}
+		},
+	],
 	atlas,
 	message,
+	clickOrTouch,
 	resizeTimer,
+	crashMessageTimer,
 	canvas,
 	ctx,
 	ratio,
@@ -99,14 +214,18 @@ var requestAnimFrame =
 	now,
 	last,
 	factor,
+	blindUntil,
 	pointerLength = 0,
 	pointerX = [],
 	pointerY = [],
 	keysDown = [],
-	starsLength = 100,
+	starsLength,
 	stars = [],
 	objectsLength,
 	objects = [],
+	debrisLength = 20,
+	debrisCursor,
+	debris = [],
 	exhaustsLength = 20,
 	exhaustsNext,
 	exhaustsCursor,
@@ -115,12 +234,14 @@ var requestAnimFrame =
 	mailsLength = 10,
 	mailsCursor,
 	mails = [],
+	arrowRadius,
 	shipAlive,
 	shipAngle,
 	shipVx,
 	shipVy,
 	shipX,
 	shipY,
+	fuel,
 	maxV = 6;
 
 function drawSprite( sprite, x, y )
@@ -131,14 +252,81 @@ function drawSprite( sprite, x, y )
 		(y-sprite.centerY) | 0 );
 }
 
+function drawDebris( x, y )
+{
+	for( var n = debrisLength; n--; )
+	{
+		var d = debris[n];
+
+		if( d.live < now )
+			continue;
+
+		d.x += d.vx;
+		d.y += d.vy;
+		d.angle += d.spin;
+		d.angle %= Math.TAU;
+
+		drawSprite(
+			sprites.debris[orientationFactor*d.angle | 0],
+			centerX+(d.x-x),
+			centerY+(d.y-y) );
+	}
+}
+
+function drawArrow( x, y )
+{
+	for( var n = objectsLength; n--; )
+	{
+		var o = objects[n];
+
+		if( o.delivered )
+			continue;
+
+		x = o.scaledX-x,
+		y = o.scaledY-y;
+
+		var sx = centerX+x,
+			sy = centerY+y;
+
+		if( sx < 0 ||
+			sx > width ||
+			sy < 0 ||
+			sy > height )
+		{
+			var a = Math.atan2( y, x ),
+				ax = Math.cos( a )*arrowRadius,
+				ay = Math.sin( a )*arrowRadius;
+
+			a = (a+Math.PI2+Math.TAU) % Math.TAU;
+
+			drawSprite(
+				sprites.arrow[orientationFactor*a | 0],
+				centerX+ax,
+				centerY+ay );
+		}
+
+		break;
+	}
+}
+
 function drawMails( x, y )
 {
 	for( var n = mailsLength; n--; )
 	{
 		var m = mails[n];
 
-		if( m.live < now )
+		if( !m.dropped )
 			continue;
+
+		if( m.delivered )
+		{
+			drawSprite(
+				sprites.check,
+				centerX+(m.tx-x),
+				centerY+(m.ty-y) );
+
+			continue;
+		}
 
 		m.x += m.vx;
 		m.y += m.vy;
@@ -147,7 +335,7 @@ function drawMails( x, y )
 			Math.abs( m.ty-m.y ) < 4 )
 		{
 			++mailsDelivered;
-			m.live = 0;
+			m.delivered = true;
 			continue;
 		}
 
@@ -278,21 +466,66 @@ function draw()
 	drawExhausts( x, y );
 	drawObjects( x, y );
 	drawMails( x, y );
+	drawArrow( x, y );
 
 	if( shipAlive )
 		drawSprite(
 			sprites.ship[orientationFactor*shipAngle | 0],
 			centerX,
 			centerY );
+	else
+		drawDebris( x, y );
 }
 
-function exhaust()
+function mailsAdd( tx, ty )
+{
+	++mailsCursor;
+	mailsCursor %= mailsLength;
+
+	var m = mails[mailsCursor],
+		x = shipX*scaleFactor,
+		y = shipY*scaleFactor,
+		dx = tx-x,
+		dy = ty-y,
+		d = Math.sqrt( dx*dx + dy*dy );
+
+	m.tx = tx;
+	m.ty = ty;
+	m.x = x;
+	m.y = y;
+	m.vx = dx/d;
+	m.vy = dy/d;
+	m.dropped = true;
+}
+
+function mailsReset()
+{
+	mailsDelivered = mailsCursor = 0;
+
+	for( var n = mailsLength; n--; )
+	{
+		var m = mails[n];
+
+		m.dropped = m.delivered = false;
+	}
+}
+
+function mailsInit()
+{
+	for( var n = mailsLength; n--; )
+		mails[n] = {};
+
+	mailsReset();
+}
+
+function exhaustsAdd()
 {
 	if( now < exhaustsNext )
 		return;
 
 	exhaustsNext = now+100;
-	exhaustsCursor = (exhaustsCursor+1) % exhaustsLength;
+	++exhaustsCursor;
+	exhaustsCursor %= exhaustsLength;
 
 	var e = exhausts[exhaustsCursor];
 	e.x = shipX*scaleFactor;
@@ -302,15 +535,35 @@ function exhaust()
 	e.live = now+1000;
 }
 
+function exhaustsReset()
+{
+	exhaustsNext = exhaustsCursor = 0;
+
+	for( var n = exhaustsLength; n--; )
+		exhausts[n].live = 0;
+}
+
+function exhaustsInit()
+{
+	for( var n = exhaustsLength; n--; )
+		exhausts[n] = {};
+
+	exhaustsReset();
+}
+
 function thrust( power )
 {
+	if( fuel < 0 )
+		return;
+
 	var a = (shipAngle+Math.PI2) % Math.TAU,
 		p = power*scaleFactor*ratio*factor;
 
+	fuel -= p;
 	shipVx -= Math.cos( a )*p;
 	shipVy -= Math.sin( a )*p;
 
-	exhaust();
+	exhaustsAdd();
 }
 
 function turn( mod )
@@ -335,54 +588,36 @@ function reset()
 	shipX = shipY = shipVx = shipVy = shipAngle = 0;
 	shipAlive = true;
 
-	objectsLength = 7;
+	blindUntil = 0;
 
-	var d = 8*resources.ship.rect.h,
-		x = shipX,
-		y = shipY;
-
-	for( var n = objectsLength; n--; )
-	{
-		var r = resources.world.rect.w;
-
-		y -= d;
-		x = Math.sin( y )*d;
-
-		objects[n] = {
-			spriteName: "world",
-			delivered: false,
-			radius: r >> 1,
-			radiusMail: r << 1,
-			x: x,
-			y: y,
-			g: 2000 };
-	}
-
+	levels[level]();
 	scalePositions();
 
-	exhaustsNext = exhaustsCursor = 0;
-
-	for( var n = exhaustsLength; n--; )
-		exhausts[n].live = 0;
-
-	mailsDelivered = mailsCursor = 0;
-
-	for( var n = mailsLength; n--; )
-		mails[n].live = 0;
+	debrisReset();
+	exhaustsReset();
+	mailsReset();
 }
 
 function input()
 {
 	if( !shipAlive )
 	{
-		if( pointerLength > 0 ||
-			keysDown[32] ||
-			keysDown[13] )
+		if( blindUntil < now &&
+			(pointerLength > 0 ||
+				keysDown[32] ||
+				keysDown[13]) )
 		{
+			pointerLength = 0;
 			message.style.display = "none";
 			reset();
 		}
 
+		return;
+	}
+
+	if( keysDown[82] )
+	{
+		reset();
 		return;
 	}
 
@@ -416,24 +651,76 @@ function input()
 		thrust( power );
 }
 
-function dropMail( tx, ty )
+function disableShip()
 {
-	mailsCursor = (mailsCursor+1) % mailsLength;
+	shipVx = shipVy = 0;
+	shipAlive = false;
+}
 
-	var m = mails[mailsCursor],
-		x = shipX*scaleFactor,
-		y = shipY*scaleFactor,
-		dx = tx-x,
-		dy = ty-y,
-		d = Math.sqrt( dx*dx + dy*dy );
+function showMessage( text )
+{
+	disableShip();
+	blindUntil = now+200;
 
-	m.tx = tx;
-	m.ty = ty;
-	m.x = x;
-	m.y = y;
-	m.vx = dx/d;
-	m.vy = dy/d;
-	m.live = now+now;
+	message.text.innerHTML = text;
+	message.style.display = "block";
+}
+
+function debrisBurst()
+{
+	for( var n = debrisLength; n--; )
+	{
+		var d = debris[n];
+
+		d.x = shipX*scaleFactor;
+		d.y = shipY*scaleFactor;
+		d.angle = Math.random()*Math.TAU;
+		d.spin = .1+Math.random()*.3;
+		d.vx =
+			shipVx*.1+
+			Math.cos( Math.random()*Math.TAU )*
+			Math.random()*6*scaleFactor;
+		d.vy =
+			shipVy*.1+
+			Math.sin( Math.random()*Math.TAU )*
+			Math.random()*6*scaleFactor;
+		d.live = now+500;
+	}
+}
+
+function debrisReset()
+{
+	for( var n = debrisLength; n--; )
+		debris[n].live = 0;
+}
+
+function debrisInit()
+{
+	for( var n = debrisLength; n--; )
+		debris[n] = {};
+
+	debrisReset();
+}
+
+function crash()
+{
+	if( crashMessageTimer )
+		return;
+
+	debrisBurst();
+	disableShip();
+
+	crashMessageTimer = setTimeout(
+		function()
+		{
+			clearTimeout( crashMessageTimer );
+			crashMessageTimer = null;
+
+			showMessage(
+				"<p>You crashed!</p>"+
+				"<p>"+clickOrTouch+" to try again.</p>" );
+		},
+		500 );
 }
 
 function gravity()
@@ -450,18 +737,14 @@ function gravity()
 
 		if( d < o.radius )
 		{
-			shipAlive = false;
-			shipVx = shipVy = 0;
-
-			message.text.innerHTML = "You crashed!";
-			message.style.display = "block";
+			crash();
 			break;
 		}
 		else if( d < o.radiusMail &&
 			!o.delivered )
 		{
 			o.delivered = true;
-			dropMail( o.scaledX, o.scaledY );
+			mailsAdd( o.scaledX, o.scaledY );
 		}
 
 		d /= o.g/(d*d);
@@ -470,6 +753,27 @@ function gravity()
 		shipVx += dx/d,
 		shipVy += dy/d;
 	}
+}
+
+function nextLevel()
+{
+	var message;
+
+	if( ++level == levels.length )
+	{
+		level %= levels.length;
+
+		message =
+			"<p>Congratulations!</p>"+
+			"<p>You beat the game.</p>"+
+			"<p>"+clickOrTouch+" if you want to play again.</p>";
+	}
+	else
+		message =
+			"<p>You delivered all mail!</p>"+
+			"<p>"+clickOrTouch+" to proceed.</p>";
+
+	showMessage( message );
 }
 
 function run()
@@ -497,11 +801,7 @@ function run()
 		shipY += shipVy;
 
 		if( mailsDelivered >= objectsLength )
-		{
-			shipAlive = false;
-			message.text.innerHTML = "You delivered all mail!";
-			message.style.display = "block";
-		}
+			nextLevel();
 	}
 
 	draw();
@@ -715,15 +1015,16 @@ function resize()
 	centerX = width >> 1;
 	centerY = height >> 1;
 
-	gridCellSize = Math.min( width, height ) >> 3;
+	var min = Math.min( width, height );
+
+	gridCellSize = min >> 3;
+	starsLength = (100/2048*Math.min( 2048, width+height )) | 0;
+	arrowRadius = min*.4 | 0;
 
 	for( var n = starsLength; n--; )
-	{
-		var s = stars[n];
-
-		s.x = Math.random()*width | 0;
-		s.y = Math.random()*height | 0;
-	}
+		stars[n] = {
+			x: Math.random()*width | 0,
+			y: Math.random()*height | 0 };
 
 	canvas.width = width;
 	canvas.height = height;
@@ -793,14 +1094,9 @@ function init()
 		return;
 	}
 
-	for( var n = starsLength; n--; )
-		stars[n] = {};
-
-	for( var n = exhaustsLength; n--; )
-		exhausts[n] = { live: 0 };
-
-	for( var n = mailsLength; n--; )
-		mails[n] = { live: 0 };
+	debrisInit();
+	exhaustsInit();
+	mailsInit();
 
 	reset();
 
@@ -809,8 +1105,8 @@ function init()
 
 	var d = document;
 
-	message.text.innerHTML =
-		("ontouchstart" in d ? "Touch" : "Click")+" me!";
+	clickOrTouch = "ontouchstart" in d ? "Touch" : "Click";
+	message.text.innerHTML = clickOrTouch+" me!";
 
 	d.onkeyup = message.onclick = function( ev )
 	{

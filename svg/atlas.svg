@@ -24,9 +24,9 @@
      borderopacity="1"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0664063"
-     inkscape:cx="-101.50915"
-     inkscape:cy="64"
+     inkscape:zoom="1.0503022"
+     inkscape:cx="-238.20084"
+     inkscape:cy="65.172157"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -125,5 +125,33 @@
        inkscape:export-xdpi="103.44"
        inkscape:export-ydpi="103.44"
        inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/mail.png" />
+    <path
+       transform="translate(0,924.36218)"
+       style="fill:#aa0000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m -214.27105,39.853485 26.97436,45.948715 -18.35897,0 0,28 -17.23077,0 0,-28 -18.35898,0 z"
+       id="rect2988"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/arrow.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       style="fill:#aa0000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m -298.15239,796.24017 23.33184,23.33185 -93.32744,93.32745 -46.66371,-46.66372 23.33187,-23.33186 23.13286,34.1192 z"
+       id="rect2989"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/check.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44" />
+    <path
+       style="fill:#e6e6e6;stroke:none"
+       d="m -224.69723,849.56341 -10.47318,30.27347 -23.80267,1.71027 9.68908,20.66424 23.01859,-5.99475 z"
+       id="path2990"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/markus/src/alive/mine/ld30/sprites/debris.png"
+       inkscape:export-xdpi="103.44"
+       inkscape:export-ydpi="103.44"
+       sodipodi:nodetypes="cccccc" />
   </g>
 </svg>
