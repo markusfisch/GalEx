@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
-<title>(ld30)</title>
+<title>GalEx - We Connect Worlds!</title>
 <link rel="shortcut icon" href="icon.png"/>
 <style>
 
 body
 {
-	background: #000; color: #fff;
+	background: #fff; color: #333;
 	margin: 0; padding: 0;
 	overflow: hidden;
 	-ms-touch-action: none;
@@ -30,7 +30,8 @@ canvas
 	right: 0; bottom: 0;
 	width: 100%; height: 100%;
 	padding: 0;
-	background: #111;
+	background: #fff center center url( title.png ) no-repeat;
+	background-size: 80%;
 	-webkit-transform-style: preserve-3d;
 	-moz-transform-style: preserve-3d;
 	transform-style: preserve-3d;
@@ -43,14 +44,22 @@ canvas
 	-webkit-transform: translateY( -50% );
 	-ms-transform: translateY( -50% );
 	transform: translateY( -50% );
-	max-width: 40em;
-	margin: 0 auto; padding: 1em;
-	font: 16pt sans-serif; color: #fff;
+	max-width: 30em;
+	margin: 0 auto; padding: 0;
+	font: 16pt sans-serif;
 	font-weight: lighter;
 	letter-spacing: .2em;
 	line-height: 150%;
 	text-align: center;
 	text-transform: uppercase;
+}
+
+h1
+{
+	margin-top: 0;
+	line-height: 150%;
+	text-transform: none;
+	font-variant: small-caps;
 }
 
 @media screen and (max-width: 900px), screen and (max-height: 560px)
@@ -102,34 +111,65 @@ var requestAnimFrame =
 			window.setTimeout( callback, 16 );
 		},
 	resources = {
-		ship: { rect: {/*ship*/x:296,y:0,w:80,h:89}, rotate: true },
-		debris: { rect: {/*debris*/x:442,y:0,w:43,h:65}, rotate: true },
-		world: { rect: {/*world*/x:165,y:0,w:131,h:131} },
-		star: { rect: {/*star*/x:442,y:103,w:13,h:13} },
-		exhaust: { rect: {/*exhaust*/x:376,y:89,w:46,h:46} },
-		mail: { rect: {/*mail*/x:442,y:65,w:38,h:38} },
-		arrow: { rect: {/*arrow*/x:376,y:0,w:66,h:89}, rotate: true },
-		check: { rect: {/*check*/x:0,y:0,w:165,h:138} },
+		ship: { rect: {/*ship*/x:634,y:505,w:114,h:120}, rotate: true },
+		debris: { rect: {/*debris*/x:606,y:774,w:100,h:100} },
+		world0: { rect: {/*world0*/x:746,y:634,w:140,h:140} },
+		world1: { rect: {/*world1*/x:748,y:505,w:113,h:113} },
+		world2: { rect: {/*world2*/x:606,y:634,w:140,h:140} },
+		world3: { rect: {/*world3*/x:634,y:316,w:189,h:189} },
+		world4: { rect: {/*world4*/x:280,y:634,w:179,h:178} },
+		world5: { rect: {/*world5*/x:634,y:0,w:250,h:316} },
+		world6: { rect: {/*world6*/x:459,y:634,w:147,h:147} },
+		blackhole: { rect: {/*blackhole*/x:0,y:0,w:634,h:634} },
+		star0: { rect: {/*star0*/x:823,y:316,w:23,h:23} },
+		star1: { rect: {/*star1*/x:846,y:316,w:21,h:21} },
+		star2: { rect: {/*star2*/x:823,y:339,w:19,h:19} },
+		star3: { rect: {/*star3*/x:867,y:316,w:16,h:16} },
+		exhaust: { rect: {/*exhaust*/x:459,y:781,w:87,h:87} },
+		mail: { rect: {/*mail*/x:280,y:812,w:75,h:75} },
+		arrow: { rect: {/*arrow*/x:746,y:774,w:105,h:149}, rotate: true },
+		check: { rect: {/*check*/x:0,y:634,w:280,h:237} },
 	},
 	defaultDistance = 8*resources.ship.rect.h,
 	level = 0,
 	levels = [
 		function()
 		{
+			objectsLength = 1;
+
+			var r = resources.world0.rect.w,
+				x = shipX,
+				y = shipY;
+
+			y -= defaultDistance;
+
+			objects[0] = {
+				spriteName: "world0",
+				delivered: false,
+				radius: r >> 1,
+				radiusMail: r << 1,
+				x: x,
+				y: y,
+				g: 2000 };
+		},
+		function()
+		{
 			objectsLength = 3;
-			fuel = 100000;
 
 			var x = shipX,
-				y = shipY;
+				y = shipY,
+				d = defaultDistance;
 
 			for( var n = objectsLength; n--; )
 			{
-				var r = resources.world.rect.w;
+				var name = "world"+(n+2),
+					r = resources[name].rect.w;
 
-				y -= defaultDistance;
+				y -= d;
+				x = Math.sin( y )*d;
 
 				objects[n] = {
-					spriteName: "world",
+					spriteName: name,
 					delivered: false,
 					radius: r >> 1,
 					radiusMail: r << 1,
@@ -137,25 +177,25 @@ var requestAnimFrame =
 					y: y,
 					g: 2000 };
 
-				x = Math.sin( y )*defaultDistance;
+				d *= .5;
 			}
 		},
 		function()
 		{
 			objectsLength = 7;
-			fuel = 1000;
 
 			var x = shipX,
 				y = shipY;
 
 			for( var n = objectsLength; n--; )
 			{
-				var r = resources.world.rect.w;
+				var name = "world"+n,
+					r = resources[name].rect.w;
 
 				y -= defaultDistance;
 
 				objects[n] = {
-					spriteName: "world",
+					spriteName: name,
 					delivered: false,
 					radius: r >> 1,
 					radiusMail: r << 1,
@@ -165,24 +205,65 @@ var requestAnimFrame =
 
 				x = Math.sin( y )*defaultDistance;
 			}
+
+			y -= defaultDistance;
+
+			objects[objectsLength++] = {
+				spriteName: "blackhole",
+				delivered: true,
+				radius: resources.blackhole.rect.w >> 3,
+				radiusMail: 0,
+				x: x,
+				y: y,
+				g: 50000 };
+		},
+		function()
+		{
+			objectsLength = 2;
+
+			var x = shipX,
+				y = shipY;
+
+			y -= defaultDistance;
+
+			objects[1] = {
+				spriteName: "blackhole",
+				delivered: true,
+				radius: resources.blackhole.rect.w >> 3,
+				radiusMail: 0,
+				x: x,
+				y: y,
+				g: 50000 };
+
+			y -= defaultDistance;
+
+			var r = resources.world4.rect.w;
+			objects[0] = {
+				spriteName: "world4",
+				delivered: false,
+				radius: r >> 1,
+				radiusMail: r << 1,
+				x: x,
+				y: y,
+				g: 2000 };
 		},
 		function()
 		{
 			objectsLength = 7;
-			fuel = 1000;
 
 			var x = shipX,
 				y = shipY,
 				step = Math.TAU/objectsLength,
-				a = 0,
-				r = resources.world.rect.w;
+				a = 0;
 
 			for( var n = objectsLength; n--; )
 			{
-				var d = Math.cos( a )*defaultDistance;
+				var name = "world"+((n+4) % 7),
+					r = resources[name].rect.w,
+					d = Math.cos( a )*defaultDistance;
 
 				objects[n] = {
-					spriteName: "world",
+					spriteName: name,
 					delivered: false,
 					radius: r >> 1,
 					radiusMail: r << 1,
@@ -192,6 +273,42 @@ var requestAnimFrame =
 
 				a += step;
 			}
+		},
+		function()
+		{
+			objectsLength = 12;
+
+			var x = shipX,
+				y = shipY-defaultDistance*2,
+				step = Math.TAU/objectsLength,
+				a = 0;
+
+			for( var n = objectsLength; n--; )
+			{
+				var name = "world"+(n % 7),
+					r = resources[name].rect.w,
+					d = defaultDistance;
+
+				objects[n] = {
+					spriteName: name,
+					delivered: false,
+					radius: r >> 1,
+					radiusMail: r << 1,
+					x: x+Math.cos( a )*d,
+					y: y+Math.sin( a )*d,
+					g: 3000 };
+
+				a += step;
+			}
+
+			objects[objectsLength++] = {
+				spriteName: "blackhole",
+				delivered: true,
+				radius: resources.blackhole.rect.w >> 3,
+				radiusMail: 0,
+				x: x,
+				y: y,
+				g: 50000 };
 		},
 	],
 	atlas,
@@ -230,8 +347,10 @@ var requestAnimFrame =
 	exhaustsNext,
 	exhaustsCursor,
 	exhausts = [],
+	exhaustDisplacement,
+	mailsToDeliver,
 	mailsDelivered,
-	mailsLength = 10,
+	mailsLength = 20,
 	mailsCursor,
 	mails = [],
 	arrowRadius,
@@ -241,8 +360,7 @@ var requestAnimFrame =
 	shipVy,
 	shipX,
 	shipY,
-	fuel,
-	maxV = 6;
+	maxV = 8;
 
 function drawSprite( sprite, x, y )
 {
@@ -263,13 +381,13 @@ function drawDebris( x, y )
 
 		d.x += d.vx;
 		d.y += d.vy;
-		d.angle += d.spin;
-		d.angle %= Math.TAU;
 
+		ctx.globalAlpha = .002*(d.live-now);
 		drawSprite(
-			sprites.debris[orientationFactor*d.angle | 0],
+			sprites.debris,
 			centerX+(d.x-x),
 			centerY+(d.y-y) );
+		ctx.globalAlpha = 1;
 	}
 }
 
@@ -371,10 +489,12 @@ function drawExhausts( x, y )
 		e.x += e.vx;
 		e.y += e.vy;
 
+		ctx.globalAlpha = .001*(e.live-now);
 		drawSprite(
 			sprites.exhaust,
 			centerX+(e.x-x),
 			centerY+(e.y-y) );
+		ctx.globalAlpha = 1;
 	}
 }
 
@@ -425,7 +545,7 @@ function drawStars()
 			}
 		}
 
-		drawSprite( sprites.star, x, y );
+		drawSprite( s.sprite, x, y );
 		s.x = x;
 		s.y = y;
 	}
@@ -433,8 +553,7 @@ function drawStars()
 
 function drawGrid( x, y )
 {
-	ctx.strokeStyle = "#111";
-	ctx.lineWidth = 1;
+	ctx.strokeStyle = "#f0f0f0";
 	ctx.beginPath();
 
 	for( var g = -(y % gridCellSize); g < height; )
@@ -456,7 +575,8 @@ function drawGrid( x, y )
 
 function draw()
 {
-	ctx.clearRect( 0, 0, width, height );
+	ctx.fillStyle = "#fff";
+	ctx.fillRect( 0, 0, width, height );
 
 	var x = shipX*scaleFactor,
 		y = shipY*scaleFactor;
@@ -477,30 +597,47 @@ function draw()
 		drawDebris( x, y );
 }
 
-function mailsAdd( tx, ty )
+function calculateMailVector( m )
+{
+	var o = m.target,
+		ox = o.scaledX,
+		oy = o.scaledY;
+
+	if( m.delivered )
+	{
+		m.tx = ox;
+		m.ty = oy;
+	}
+
+	var dx = ox-m.x,
+		dy = oy-m.y,
+		d = Math.sqrt( dx*dx + dy*dy ),
+		f = d/(4*scaleFactor);
+
+	m.tx = ox;
+	m.ty = oy;
+	m.vx = dx/f;
+	m.vy = dy/f;
+}
+
+function mailsAdd( o )
 {
 	++mailsCursor;
 	mailsCursor %= mailsLength;
 
-	var m = mails[mailsCursor],
-		x = shipX*scaleFactor,
-		y = shipY*scaleFactor,
-		dx = tx-x,
-		dy = ty-y,
-		d = Math.sqrt( dx*dx + dy*dy );
+	var m = mails[mailsCursor];
 
-	m.tx = tx;
-	m.ty = ty;
-	m.x = x;
-	m.y = y;
-	m.vx = dx/d;
-	m.vy = dy/d;
+	m.target = o;
 	m.dropped = true;
+	m.x = shipX*scaleFactor;
+	m.y = shipY*scaleFactor;
+
+	calculateMailVector( m );
 }
 
 function mailsReset()
 {
-	mailsDelivered = mailsCursor = 0;
+	mailsToDeliver = mailsDelivered = mailsCursor = 0;
 
 	for( var n = mailsLength; n--; )
 	{
@@ -508,6 +645,11 @@ function mailsReset()
 
 		m.dropped = m.delivered = false;
 	}
+
+	for( var n = objectsLength; n--; )
+		if( !objects[n].delivered )
+			++mailsToDeliver;
+
 }
 
 function mailsInit()
@@ -523,15 +665,15 @@ function exhaustsAdd()
 	if( now < exhaustsNext )
 		return;
 
-	exhaustsNext = now+100;
+	exhaustsNext = now+50;
 	++exhaustsCursor;
 	exhaustsCursor %= exhaustsLength;
 
 	var e = exhausts[exhaustsCursor];
-	e.x = shipX*scaleFactor;
-	e.y = shipY*scaleFactor;
 	e.vx = -shipVx*.5*scaleFactor;
 	e.vy = -shipVy*.5*scaleFactor;
+	e.x = shipX*scaleFactor+Math.sin( -shipAngle )*exhaustDisplacement;
+	e.y = shipY*scaleFactor+Math.cos( -shipAngle )*exhaustDisplacement;
 	e.live = now+1000;
 }
 
@@ -553,13 +695,9 @@ function exhaustsInit()
 
 function thrust( power )
 {
-	if( fuel < 0 )
-		return;
-
 	var a = (shipAngle+Math.PI2) % Math.TAU,
 		p = power*scaleFactor*ratio*factor;
 
-	fuel -= p;
 	shipVx -= Math.cos( a )*p;
 	shipVy -= Math.sin( a )*p;
 
@@ -602,7 +740,8 @@ function input()
 {
 	if( !shipAlive )
 	{
-		if( blindUntil < now &&
+		if( !crashMessageTimer &&
+			blindUntil < now &&
 			(pointerLength > 0 ||
 				keysDown[32] ||
 				keysDown[13]) )
@@ -622,7 +761,7 @@ function input()
 	}
 
 	var step = .05,
-		power = .25;
+		power = .75;
 
 	for( var n = pointerLength; n--; )
 	{
@@ -661,6 +800,7 @@ function showMessage( text )
 {
 	disableShip();
 	blindUntil = now+200;
+	pointerLength = 0;
 
 	message.text.innerHTML = text;
 	message.style.display = "block";
@@ -674,8 +814,6 @@ function debrisBurst()
 
 		d.x = shipX*scaleFactor;
 		d.y = shipY*scaleFactor;
-		d.angle = Math.random()*Math.TAU;
-		d.spin = .1+Math.random()*.3;
 		d.vx =
 			shipVx*.1+
 			Math.cos( Math.random()*Math.TAU )*
@@ -744,7 +882,7 @@ function gravity()
 			!o.delivered )
 		{
 			o.delivered = true;
-			mailsAdd( o.scaledX, o.scaledY );
+			mailsAdd( o );
 		}
 
 		d /= o.g/(d*d);
@@ -770,8 +908,8 @@ function nextLevel()
 	}
 	else
 		message =
-			"<p>You delivered all mail!</p>"+
-			"<p>"+clickOrTouch+" to proceed.</p>";
+			"<p>All mail delivered!</p>"+
+			"<p>"+clickOrTouch+" to level up.</p>";
 
 	showMessage( message );
 }
@@ -800,7 +938,7 @@ function run()
 		shipX += shipVx;
 		shipY += shipVy;
 
-		if( mailsDelivered >= objectsLength )
+		if( mailsDelivered >= mailsToDeliver )
 			nextLevel();
 	}
 
@@ -1021,11 +1159,6 @@ function resize()
 	starsLength = (100/2048*Math.min( 2048, width+height )) | 0;
 	arrowRadius = min*.4 | 0;
 
-	for( var n = starsLength; n--; )
-		stars[n] = {
-			x: Math.random()*width | 0,
-			y: Math.random()*height | 0 };
-
 	canvas.width = width;
 	canvas.height = height;
 	canvas.style.width = w+"px";
@@ -1034,7 +1167,30 @@ function resize()
 	scale();
 	scalePositions();
 
-	if( message.resizing )
+	for( var n = starsLength; n--; )
+	{
+		var size = ((Math.random()*4) % 4) | 0;
+
+		stars[n] = {
+			x: Math.random()*width | 0,
+			y: Math.random()*height | 0,
+			sprite: sprites["star"+size] };
+	}
+
+	for( var n = mailsLength; n--; )
+	{
+		var m = mails[n];
+
+		if( !m.dropped )
+			continue;
+
+		calculateMailVector( m );
+	}
+
+	exhaustDisplacement = sprites.ship[0].height >> 1;
+
+	if( shipAlive &&
+		message.resizing )
 		message.style.display = "none";
 }
 
@@ -1094,6 +1250,8 @@ function init()
 		return;
 	}
 
+	ctx.lineWidth = 1;
+
 	debrisInit();
 	exhaustsInit();
 	mailsInit();
@@ -1106,7 +1264,11 @@ function init()
 	var d = document;
 
 	clickOrTouch = "ontouchstart" in d ? "Touch" : "Click";
-	message.text.innerHTML = clickOrTouch+" me!";
+
+	message.text.innerHTML =
+		"<h1>Welcome to GalEx!</h1>"+
+		"<p>Connecting worlds by delivering mail.</p>"+
+		"<p>"+clickOrTouch+" when ready!</p>";
 
 	d.onkeyup = message.onclick = function( ev )
 	{
