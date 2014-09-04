@@ -1,6 +1,6 @@
 HTDOCS = htdocs
 SPRITES = sprites/*
-WEBROOT = hhsw.de@ssh.strato.de:sites/proto/ld30
+WEBROOT = hhsw.de@ssh.strato.de:sites/galex
 OPTIONS = \
 	--recursive \
 	--links \
