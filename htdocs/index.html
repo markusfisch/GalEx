@@ -665,7 +665,7 @@ function exhaustsAdd()
 	if( now < exhaustsNext )
 		return;
 
-	exhaustsNext = now+50;
+	exhaustsNext = now+20;
 	++exhaustsCursor;
 	exhaustsCursor %= exhaustsLength;
 
@@ -674,7 +674,7 @@ function exhaustsAdd()
 	e.vy = -shipVy*.5*scaleFactor;
 	e.x = shipX*scaleFactor+Math.sin( -shipAngle )*exhaustDisplacement;
 	e.y = shipY*scaleFactor+Math.cos( -shipAngle )*exhaustDisplacement;
-	e.live = now+1000;
+	e.live = now+500;
 }
 
 function exhaustsReset()
