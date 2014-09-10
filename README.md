@@ -1,8 +1,11 @@
-GalEx
-=====
+GalEx - Galactic Express
+========================
 
-This game was written for [Ludum Dare](http://ludumdare.com) #30.
-Theme is __Connected Worlds__.
+A fast, casual game about delivering mail in space.
+Works on any device with a modern web browser.
+
+Originally written for [Ludum Dare](http://ludumdare.com) #30.
+Theme was __Connected Worlds__.
 
 View original
 [submission](http://www.ludumdare.com/compo/ludum-dare-30/?uid=19466).
@@ -10,4 +13,4 @@ View original
 Play it
 -------
 
-Be a good space man and [connect worlds](http://hhsw.de/sites/proto/ld30)!
+Race into the stars and [connect worlds](http://hhsw.de/sites/galex)!
