@@ -330,10 +330,10 @@ var requestAnimFrame =
 				spriteName: "world1",
 				update: function()
 				{
-					var a = now*.0002;
-
-					setOrbit( this, x, y, r1, a );
+					this.a += .005*factor;
+					setOrbit( this, x, y, r1, this.a );
 				},
+				a: 0,
 				x: x,
 				y: y };
 
@@ -341,10 +341,10 @@ var requestAnimFrame =
 				spriteName: "world2",
 				update: function()
 				{
-					var a = now*.0002+Math.PI;
-
-					setOrbit( this, x, y, r2, a );
+					this.a += .002*factor;
+					setOrbit( this, x, y, r2, this.a );
 				},
+				a: Math.PI,
 				x: x,
 				y: y };
 		},
@@ -361,7 +361,7 @@ var requestAnimFrame =
 				r3 = defaultDistance;
 
 			objects[objectsLength++] = {
-				spriteName: "world5",
+				spriteName: "world3",
 				x: x1,
 				y: y1,
 				g: 5000 };
@@ -370,10 +370,10 @@ var requestAnimFrame =
 				spriteName: "world0",
 				update: function()
 				{
-					var a = now*.0002;
-
-					setOrbit( this, x1, y1, r1, a );
+					this.a += .005*factor;
+					setOrbit( this, x1, y1, r1, this.a );
 				},
+				a: 0,
 				x: x1,
 				y: y1 };
 
@@ -381,10 +381,10 @@ var requestAnimFrame =
 				spriteName: "world1",
 				update: function()
 				{
-					var a = now*.0001+Math.PI2;
-
-					setOrbit( this, x1, y1, r2, a );
+					this.a += .003*factor;
+					setOrbit( this, x1, y1, r2, this.a );
 				},
+				a: Math.PI2,
 				x: x1,
 				y: y1 };
 
@@ -392,10 +392,10 @@ var requestAnimFrame =
 				spriteName: "world6",
 				update: function()
 				{
-					var a = now*.00005-Math.PI2;
-
-					setOrbit( this, x1, y1, r3, a );
+					this.a += .003*factor;
+					setOrbit( this, x1, y1, r3, this.a );
 				},
+				a: -Math.PI2,
 				x: x1,
 				y: y1 };
 
@@ -412,10 +412,10 @@ var requestAnimFrame =
 				spriteName: "world2",
 				update: function()
 				{
-					var a = now*.0002-Math.PI2;
-
-					setOrbit( this, x2, y2, r2, a );
+					this.a += .004*factor;
+					setOrbit( this, x2, y2, r2, this.a );
 				},
+				a: -Math.PI2,
 				x: x2,
 				y: y2 };
 
@@ -423,10 +423,10 @@ var requestAnimFrame =
 				spriteName: "world4",
 				update: function()
 				{
-					var a = now*.00007-Math.PI;
-
-					setOrbit( this, x2, y2, r3, a );
+					this.a += .003*factor;
+					setOrbit( this, x2, y2, r3, this.a );
 				},
+				a: -Math.PI,
 				x: x2,
 				y: y2 };
 		},
@@ -451,10 +451,10 @@ var requestAnimFrame =
 				spriteName: "world1",
 				update: function()
 				{
-					var a = now*.00025+Math.PI2;
-
-					setOrbit( this, x, y, r1, a );
+					this.a += .005*factor;
+					setOrbit( this, x, y, r1, this.a );
 				},
+				a: 1,
 				x: x,
 				y: y };
 
@@ -462,10 +462,10 @@ var requestAnimFrame =
 				spriteName: "world2",
 				update: function()
 				{
-					var a = now*.0003-Math.PI2;
-
-					setOrbit( this, x, y, r2, a );
+					this.a += .004*factor;
+					setOrbit( this, x, y, r2, this.a );
 				},
+				a: 2,
 				x: x,
 				y: y };
 
@@ -473,10 +473,10 @@ var requestAnimFrame =
 				spriteName: "world6",
 				update: function()
 				{
-					var a = now*.0001;
-
-					setOrbit( this, x, y, r3, a );
+					this.a += .003*factor;
+					setOrbit( this, x, y, r3, this.a );
 				},
+				a: -Math.PI2,
 				x: x,
 				y: y };
 
@@ -484,10 +484,10 @@ var requestAnimFrame =
 				spriteName: "blackhole",
 				update: function()
 				{
-					var a = now*.0002-Math.PI;
-
-					setOrbit( this, x, y, r4, a );
+					this.a += .003*factor;
+					setOrbit( this, x, y, r4, this.a );
 				},
+				a: Math.PI,
 				delivered: true,
 				radius: resources.blackhole.rect.w >> 3,
 				radiusMail: 0,
@@ -499,10 +499,10 @@ var requestAnimFrame =
 				spriteName: "blackhole",
 				update: function()
 				{
-					var a = now*.0002;
-
-					setOrbit( this, x, y, r4, a );
+					this.a += .003*factor;
+					setOrbit( this, x, y, r4, this.a );
 				},
+				a: 0,
 				delivered: true,
 				radius: resources.blackhole.rect.w >> 3,
 				radiusMail: 0,
@@ -618,7 +618,6 @@ var requestAnimFrame =
 	maxV = 8,
 	levelStart,
 	levelTries = 0,
-	fuelRequired = 0,
 	playTime = 0;
 
 function setOrbit( o, cx, cy, r, a )
@@ -950,8 +949,6 @@ function thrust( power )
 	var a = (shipAngle+Math.PI2) % Math.TAU,
 		p = power*factor;
 
-	fuelRequired += power;
-
 	shipVx -= Math.cos( a )*p;
 	shipVy -= Math.sin( a )*p;
 
@@ -1148,7 +1145,7 @@ function crash()
 			showMessage(
 				"You crashed!<br/><br/>"+
 				(level > 0 ?
-					"You're still at "+playTimeString()+".<br/><br/>" :
+					"Clock's still at "+playTimeString()+".<br/><br/>" :
 					"")+
 				clickOrTouch+" to try again." );
 		},
@@ -1198,23 +1195,21 @@ function nextLevel()
 	{
 		message =
 			"Congratulations!<br/><br/>"+
-			"You beat the game in "+playTimeString()+".<br/><br/>"+
+			"You delivered all mail in "+playTimeString()+".<br/><br/>"+
 			'You needed <strong class="NoWrap">'+levelTries+
-			' tries</strong> and <strong class="NoWrap">'+
-			Math.round( fuelRequired )+
-			" fuel</strong>.<br/><br/>"+
-			clickOrTouch+" if you can do it faster.";
+			" tries</strong>.<br/><br/>"+
+			clickOrTouch+" if you think you can do it faster.";
 
 		level =
 		levelTries =
-		fuelRequired =
 		playTime = 0;
 	}
 	else
 		message =
 			"All mail delivered!<br/><br/>"+
-			"You're at "+playTimeString()+".<br/><br/>"+
-			clickOrTouch+" to level up.";
+			"Clock's at "+playTimeString()+".<br/><br/>"+
+			clickOrTouch+' to proceed to <span class="NoWrap">system '+
+			(level+1)+" of "+levels.length+"</span>.";
 
 	showMessage( message );
 }
@@ -1532,7 +1527,9 @@ function init()
 
 	var d = document;
 
-	clickOrTouch = "ontouchstart" in d ? "Touch" : "Click";
+	clickOrTouch = "ontouchstart" in d ?
+		"Touch" :
+		"Click or press a key";
 
 	message.text.innerHTML = clickOrTouch+" to play!";
 
