@@ -566,6 +566,7 @@ var requestAnimFrame =
 	],
 	atlas,
 	message,
+	messageText,
 	clickOrTouch,
 	resizeTimer,
 	crashMessageTimer,
@@ -584,7 +585,6 @@ var requestAnimFrame =
 	now,
 	last,
 	factor,
-	blindUntil,
 	pointerLength = 0,
 	pointerX = [],
 	pointerY = [],
@@ -998,8 +998,6 @@ function reset()
 	shipX = shipY = shipVx = shipVy = shipAngle = 0;
 	shipAlive = true;
 
-	blindUntil = 0;
-
 	levels[level]();
 	validateObjects();
 	scalePositions();
@@ -1016,14 +1014,10 @@ function input()
 {
 	if( !shipAlive )
 	{
-		if( !crashMessageTimer &&
-			blindUntil < now &&
-			(pointerLength > 0 ||
-				keysDown[32] ||
-				keysDown[13]) )
+		if( keysDown[32] ||
+			keysDown[13] )
 		{
-			pointerLength = 0;
-			message.style.display = "none";
+			hideMessage();
 			reset();
 		}
 
@@ -1049,10 +1043,10 @@ function input()
 		if( d > Math.PI )
 			d -= Math.TAU;
 
-		if( d > .1  )
-			turn( -step );
-		else if( d < .1 )
-			turn( step );
+		if( d > .1 )
+			turn( d > step ? -step : -d );
+		else if( d < -.1 )
+			turn( d < -step ? step : d );
 
 		thrust( power );
 	}
@@ -1072,13 +1066,26 @@ function disableShip()
 	shipAlive = false;
 }
 
+function hideMessage()
+{
+	message.style.display = "none";
+}
+
+function setMessage( text )
+{
+	messageText.innerHTML = text;
+}
+
 function showMessage( text )
 {
-	disableShip();
-	blindUntil = now+200;
-	pointerLength = 0;
+	message.onclick = function()
+	{
+		message.onclick = null;
+		hideMessage();
+		reset();
+	}
 
-	message.text.innerHTML = text;
+	setMessage( text );
 	message.style.display = "block";
 }
 
@@ -1185,6 +1192,8 @@ function gravity()
 function nextLevel()
 {
 	var message;
+
+	disableShip();
 
 	++level;
 	playTime += now-levelStart;
@@ -1481,7 +1490,7 @@ function resize()
 
 	if( shipAlive &&
 		message.resizing )
-		message.style.display = "none";
+		hideMessage();
 }
 
 function scheduleResize()
@@ -1489,15 +1498,45 @@ function scheduleResize()
 	if( resizeTimer )
 		clearTimeout( resizeTimer );
 
-	if( message.started &&
-		shipAlive )
+	if( shipAlive )
 	{
 		message.resizing = true;
-		message.text.innerHTML = "Resizing...";
-		message.style.display = "block";
+		showMessage( "Resizing..." );
 	}
 
 	resizeTimer = setTimeout( resize, 200 );
+}
+
+function start()
+{
+	var d = document;
+
+	d.onkeydown = keyDown;
+	d.onkeyup = keyUp;
+
+	d.onmousedown = pointerDown;
+	d.onmousemove = pointerMove;
+	d.onmouseup = pointerUp;
+	d.onmouseout = pointerUp;
+
+	if( "ontouchstart" in d )
+	{
+		d.ontouchstart = pointerDown;
+		d.ontouchmove = pointerMove;
+		d.ontouchend = pointerUp;
+		d.ontouchleave = pointerUp;
+		d.ontouchcancel = pointerUp;
+	}
+
+	hideMessage();
+	message.style.backgroundImage = "url( bg.jpg )";
+
+	var e;
+	if( (e = document.getElementById( "Title" )) )
+		e.style.display = "none";
+
+	reset();
+	run();
 }
 
 function init()
@@ -1522,52 +1561,16 @@ function init()
 
 	window.onresize = scheduleResize;
 
-	var d = document;
-
-	clickOrTouch = "ontouchstart" in d ?
+	clickOrTouch = "ontouchstart" in document ?
 		"Touch" :
 		"Click or press a key";
 
-	message.text.innerHTML = clickOrTouch+" to play!";
+	setMessage( clickOrTouch+" to play!" );
 
-	d.onkeyup = message.onclick = function( ev )
+	document.onkeyup = message.onclick = function()
 	{
-		message.style.display = "none";
-		message.style.backgroundImage = "url( bg.jpg )";
-		message.started = true;
-
-		var e;
-		if( (e = d.getElementById( "Title" )) )
-			e.style.display = "none";
-
-		// don't use onclick() after that; it'll interfere
-		// with onmouse*/ontouch* events
-		message.onclick = function( ev )
-		{
-			(ev || event).preventDefault();
-			return false;
-		};
-
-		d.onkeydown = keyDown;
-		d.onkeyup = keyUp;
-
-		d.onmousedown = pointerDown;
-		d.onmousemove = pointerMove;
-		d.onmouseup = pointerUp;
-		d.onmouseout = pointerUp;
-
-		if( "ontouchstart" in d )
-		{
-			d.ontouchstart = pointerDown;
-			d.ontouchmove = pointerMove;
-			d.ontouchend = pointerUp;
-		}
-
-		reset();
-		run();
-
-		(ev || event).preventDefault();
-		return false;
+		message.onclick = null;
+		start();
 	};
 }
 
@@ -1594,29 +1597,21 @@ function createCanvas()
 function load()
 {
 	if( !(message = document.getElementById( "Message" )) ||
-		!(message.text = document.getElementById( "MessageText" )) ||
+		!(messageText = document.getElementById( "MessageText" )) ||
 		!createCanvas() )
 	{
-		message.text.innerHTML =
-			"Sorry, this browser cannot run this game.";
+		setMessage( "Sorry, this browser cannot run this game." );
 
 		return;
 	}
 
-	message.text.innerHTML = "Loading...";
+	setMessage( "Loading..." );
 
 	last = new Date().getTime();
 
-	if( atlas &&
-		atlas.complete )
-	{
-		init();
-		return;
-	}
-
 	atlas = new Image();
-	atlas.src = "atlas.png";
 	atlas.onload = init;
+	atlas.src = "atlas.png";
 }
 
 window.onload = load;
