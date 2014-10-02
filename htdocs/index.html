@@ -14,6 +14,11 @@ body
 	margin: 0; padding: 0;
 	overflow: hidden;
 	-ms-touch-action: none;
+	font: 16pt sans-serif;
+	font-weight: lighter;
+	letter-spacing: .2em;
+	line-height: 150%;
+	text-transform: uppercase;
 }
 
 canvas
@@ -45,26 +50,22 @@ canvas
 	-webkit-transform: translateY( -50% );
 	-ms-transform: translateY( -50% );
 	transform: translateY( -50% );
-	max-width: 30em;
+	max-width: 22em;
 	margin: 0 auto; padding: 0;
 	text-align: center;
 }
 
-#Title
+.Title
 {
 	display: block;
-	margin: 0 auto 2em;
+	margin: 0 auto;
 	width: 100%;
 }
 
-.Text
+.Text,
+.Button
 {
 	margin: 0 auto; padding: 0;
-	font: 16pt sans-serif;
-	font-weight: lighter;
-	letter-spacing: .2em;
-	line-height: 150%;
-	text-transform: uppercase;
 }
 
 .NoWrap
@@ -72,44 +73,57 @@ canvas
 	white-space: nowrap;
 }
 
-@media screen and (max-width: 900px), screen and (max-height: 640px)
+.Button
 {
-	#Title
-	{
-		width: 80%;
-	}
+	background: #111; color: #fff;
+	display: inline-block;
+	margin: .25em; padding: .5em .75em;
+	border: 0; outline: 0;
+	border-radius: .2em;
+	text-decoration: none;
+	cursor: default;
+}
 
-	.Text
+@-webkit-keyframes slideIn { 0% { margin-top: 300% } 100% { margin-top: 0 } }
+@-moz-keyframes slideIn { 0% { margin-top: 300% } 100% { margin-top: 0 } }
+@-o-keyframes slideIn { 0% { margin-top: 300% } 100% { margin-top: 0 } }
+@keyframes slideIn { 0% { margin-top: 300% } 100% { margin-top: 0 } }
+
+.Buttons
+{
+	-webkit-animation: slideIn .5s;
+	-moz-animation: slideIn .5s;
+	-o-animation: slideIn .5s;
+	animation: slideIn .5s;
+	padding: 2em 0 0;
+}
+
+@media screen and (max-width: 900px), screen and (max-height: 720px)
+{
+	body
 	{
-		font-size: 16pt;
+		font-size: 13pt;
 	}
 }
 
-@media screen and (max-width: 700px), screen and (max-height: 560px)
+@media screen and (max-width: 700px), screen and (max-height: 600px)
 {
-	#Title
+	body
 	{
-		width: 60%;
-		margin-bottom: 1em;
-	}
-
-	.Text
-	{
-		width: 80%;
 		font-size: 10pt;
 	}
 }
 
-@media screen and (max-width: 360px), screen and (max-height: 360px)
+@media screen and (max-width: 360px), screen and (max-height: 460px)
 {
-	#Title
-	{
-		width: 30%;
-	}
-
-	.Text
+	body
 	{
 		font-size: 8pt;
+	}
+
+	.Center
+	{
+		max-width: 16em;
 	}
 }
 
@@ -118,7 +132,7 @@ canvas
 <body>
 <div id="Message" class="Overlay">
 	<div class="Center">
-		<img id="Title" src="title.jpg" alt="Title Screen"/>
+		<!--img class="Title" src="title.jpg" alt="Title Screen"/-->
 		<div id="MessageText" class="Text">Initializing...</div>
 	</div>
 </div>
@@ -564,10 +578,10 @@ var requestAnimFrame =
 			}
 		},
 	],
+	title,
 	atlas,
 	message,
 	messageText,
-	clickOrTouch,
 	resizeTimer,
 	crashMessageTimer,
 	canvas,
@@ -1014,12 +1028,11 @@ function input()
 {
 	if( !shipAlive )
 	{
-		if( keysDown[32] ||
-			keysDown[13] )
-		{
-			hideMessage();
-			reset();
-		}
+		if( !crashMessageTimer &&
+			(keysDown[32] ||
+				keysDown[13] ||
+				keysDown[82]) )
+			restart();
 
 		return;
 	}
@@ -1078,13 +1091,6 @@ function setMessage( text )
 
 function showMessage( text )
 {
-	message.onclick = function()
-	{
-		message.onclick = null;
-		hideMessage();
-		reset();
-	}
-
 	setMessage( text );
 	message.style.display = "block";
 }
@@ -1133,6 +1139,12 @@ function playTimeString()
 		"")+'<strong class="NoWrap">'+(sec % 60)+" seconds</strong>";
 }
 
+function restart()
+{
+	hideMessage();
+	reset();
+}
+
 function crash()
 {
 	if( crashMessageTimer )
@@ -1148,11 +1160,13 @@ function crash()
 			crashMessageTimer = null;
 
 			showMessage(
-				"You crashed!<br/><br/>"+
+				"You crashed!"+
 				(level > 0 ?
-					"Clock's still at "+playTimeString()+".<br/><br/>" :
+					"<br/><br/>Clock's still at "+playTimeString()+"." :
 					"")+
-				clickOrTouch+" to try again." );
+				'<div class="Buttons">'+
+				'<a class="Button" onclick="restart()">Try Again</a>'+
+				'</div>' );
 		},
 		500 );
 }
@@ -1204,8 +1218,10 @@ function nextLevel()
 			"Congratulations!<br/><br/>"+
 			"You delivered all mail in "+playTimeString()+".<br/><br/>"+
 			'You needed <strong class="NoWrap">'+levelTries+
-			" tries</strong>.<br/><br/>"+
-			clickOrTouch+" if you think you can do it faster.";
+			" tries</strong>.";
+
+		// avoid restart by keyboard
+		crashMessageTimer = 1;
 
 		level =
 		levelTries =
@@ -1215,8 +1231,11 @@ function nextLevel()
 		message =
 			"All mail delivered!<br/><br/>"+
 			"Clock's at "+playTimeString()+".<br/><br/>"+
-			clickOrTouch+' to proceed to <span class="NoWrap">system '+
-			(level+1)+" of "+levels.length+"</span>.";
+			'Proceed to system <span class="NoWrap">'+
+			(level+1)+" of "+levels.length+"</span>."+
+			'<div class="Buttons">'+
+			'<a class="Button" onclick="restart()">Proceed</a>'+
+			'</div>';
 
 	showMessage( message );
 }
@@ -1529,11 +1548,9 @@ function start()
 	}
 
 	hideMessage();
-	message.style.backgroundImage = "url( bg.jpg )";
 
-	var e;
-	if( (e = document.getElementById( "Title" )) )
-		e.style.display = "none";
+	// no need to preload this image
+	message.style.backgroundImage = "url( bg.jpg )";
 
 	reset();
 	run();
@@ -1541,7 +1558,8 @@ function start()
 
 function init()
 {
-	if( !atlas.complete ||
+	if( !title.complete ||
+		!atlas.complete ||
 		new Date().getTime()-last < 500 )
 	{
 		// give mobile browsers some time to settle
@@ -1561,17 +1579,12 @@ function init()
 
 	window.onresize = scheduleResize;
 
-	clickOrTouch = "ontouchstart" in document ?
-		"Touch" :
-		"Click or press a key";
-
-	setMessage( clickOrTouch+" to play!" );
-
-	document.onkeyup = message.onclick = function()
-	{
-		message.onclick = null;
-		start();
-	};
+	document.onkeyup = start;
+	setMessage(
+		'<img class="Title" src="title.jpg"/>'+
+		'<div class="Buttons">'+
+		'<a class="Button" onclick="start()">Start</a>'+
+		'</div>' );
 }
 
 function createCanvas()
@@ -1609,9 +1622,13 @@ function load()
 
 	last = new Date().getTime();
 
+	title = new Image();
+	title.src = "title.jpg";
+
 	atlas = new Image();
-	atlas.onload = init;
 	atlas.src = "atlas.png";
+
+	init();
 }
 
 window.onload = load;
