@@ -1079,9 +1079,38 @@ function disableShip()
 	shipAlive = false;
 }
 
+function enableTouch()
+{
+	var d = document;
+
+	if( "ontouchstart" in d )
+	{
+		d.ontouchstart = pointerDown;
+		d.ontouchmove = pointerMove;
+		d.ontouchend = pointerUp;
+		d.ontouchleave = pointerUp;
+		d.ontouchcancel = pointerUp;
+	}
+}
+
+function disableTouch()
+{
+	var d = document;
+
+	if( "ontouchstart" in d )
+	{
+		d.ontouchstart =
+		d.ontouchmove =
+		d.ontouchend =
+		d.ontouchleave =
+		d.ontouchcancel = null;
+	}
+}
+
 function hideMessage()
 {
 	message.style.display = "none";
+	enableTouch();
 }
 
 function setMessage( text )
@@ -1091,6 +1120,7 @@ function setMessage( text )
 
 function showMessage( text )
 {
+	disableTouch();
 	setMessage( text );
 	message.style.display = "block";
 }
@@ -1538,15 +1568,7 @@ function start()
 	d.onmouseup = pointerUp;
 	d.onmouseout = pointerUp;
 
-	if( "ontouchstart" in d )
-	{
-		d.ontouchstart = pointerDown;
-		d.ontouchmove = pointerMove;
-		d.ontouchend = pointerUp;
-		d.ontouchleave = pointerUp;
-		d.ontouchcancel = pointerUp;
-	}
-
+	enableTouch();
 	hideMessage();
 
 	// no need to preload this image
