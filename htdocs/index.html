@@ -1079,9 +1079,35 @@ function disableShip()
 	shipAlive = false;
 }
 
-function enableTouch()
+function disablePointer()
 {
 	var d = document;
+
+	d.onmousedown =
+	d.onmousemove =
+	d.onmouseup =
+	d.onmouseout = null;
+
+	if( "ontouchstart" in d )
+	{
+		d.ontouchstart =
+		d.ontouchmove =
+		d.ontouchend =
+		d.ontouchleave =
+		d.ontouchcancel = null;
+	}
+
+	pointerLength = 0;
+}
+
+function enablePointer()
+{
+	var d = document;
+
+	d.onmousedown = pointerDown;
+	d.onmousemove = pointerMove;
+	d.onmouseup = pointerUp;
+	d.onmouseout = pointerUp;
 
 	if( "ontouchstart" in d )
 	{
@@ -1093,24 +1119,10 @@ function enableTouch()
 	}
 }
 
-function disableTouch()
-{
-	var d = document;
-
-	if( "ontouchstart" in d )
-	{
-		d.ontouchstart =
-		d.ontouchmove =
-		d.ontouchend =
-		d.ontouchleave =
-		d.ontouchcancel = null;
-	}
-}
-
 function hideMessage()
 {
 	message.style.display = "none";
-	enableTouch();
+	enablePointer();
 }
 
 function setMessage( text )
@@ -1120,7 +1132,7 @@ function setMessage( text )
 
 function showMessage( text )
 {
-	disableTouch();
+	disablePointer();
 	setMessage( text );
 	message.style.display = "block";
 }
@@ -1563,12 +1575,7 @@ function start()
 	d.onkeydown = keyDown;
 	d.onkeyup = keyUp;
 
-	d.onmousedown = pointerDown;
-	d.onmousemove = pointerMove;
-	d.onmouseup = pointerUp;
-	d.onmouseout = pointerUp;
-
-	enableTouch();
+	enablePointer();
 	hideMessage();
 
 	// no need to preload this image
