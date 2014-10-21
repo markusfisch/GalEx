@@ -3,6 +3,7 @@
 	"name": "GalEx",
 	"description": "Galactic Express",
 	"launch_path": "/",
+	"appcache_path": "/offline.appcache",
 	"icons": {
 		"16": "/icon-16.png",
 		"30": "/icon-30.png",
