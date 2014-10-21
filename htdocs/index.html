@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 <title>GalEx</title>
-<link rel="shortcut icon" href="icon.png"/>
+<link rel="shortcut icon" href="icon-128.png"/>
 <link rel="apple-touch-icon-precomposed" href="apple-icon.png"/>
 <style>
 
@@ -1260,7 +1260,10 @@ function nextLevel()
 			"Congratulations!<br/><br/>"+
 			"You delivered all mail in "+playTimeString()+".<br/><br/>"+
 			'You needed <strong class="NoWrap">'+levelTries+
-			" tries</strong>.";
+			" tries</strong>."+
+			'<div class="Buttons">'+
+			'<a class="Button" onclick="restart()">Play Again</a>'+
+			'</div>';
 
 		// avoid restart by keyboard
 		crashMessageTimer = 1;
