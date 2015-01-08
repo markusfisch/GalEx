@@ -3,5 +3,6 @@ DirectoryIndex index.html
 mod_gzip_on Yes
 
 AddType application/x-web-app-manifest+json .webapp
+ExpiresByType text/cache-manifest "access plus 0 seconds"
 
 ErrorDocument 404 http://galex.markusfisch.de/
