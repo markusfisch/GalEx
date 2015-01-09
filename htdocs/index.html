@@ -6,6 +6,7 @@
 <title>GalEx</title>
 <link rel="shortcut icon" href="icon-128.png"/>
 <link rel="apple-touch-icon-precomposed" href="apple-icon.png"/>
+<link rel="manifest" href="manifest.json"/>
 <style>
 
 body
@@ -114,16 +115,11 @@ canvas
 	}
 }
 
-@media screen and (max-width: 360px), screen and (max-height: 340px)
+@media screen and (max-height: 320px)
 {
-	body
-	{
-		font-size: 8pt;
-	}
-
 	.Center
 	{
-		max-width: 16em;
+		max-width: 15em;
 	}
 }
 
@@ -1186,12 +1182,6 @@ function restart()
 	reset();
 }
 
-function reboot()
-{
-	level = levelTries = playTime = 0;
-	restart();
-}
-
 function crash()
 {
 	if( crashMessageTimer )
@@ -1213,7 +1203,8 @@ function crash()
 					"")+
 				'<div class="Buttons">'+
 				'<a class="Button" onclick="restart()">Try Again</a>'+
-				'<a class="Button" onclick="reboot()">Restart</a>'+
+				'<a class="Button" '+
+					'onclick="window.location.reload( false )">Restart</a>'+
 				'</div>' );
 		},
 		500 );
@@ -1614,7 +1605,6 @@ function init()
 	mailsInit();
 
 	resize();
-
 	window.onresize = scheduleResize;
 
 	document.onkeyup = start;
