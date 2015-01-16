@@ -836,24 +836,19 @@ function drawStars()
 
 function drawGrid( x, y )
 {
-	ctx.strokeStyle = "#f0f0f0";
-	ctx.beginPath();
+	ctx.fillStyle = "#f0f0f0";
 
 	for( var g = -(y % gridCellSize); g < height; )
 	{
-		ctx.moveTo( 0, g );
-		ctx.lineTo( width, g );
+		ctx.fillRect( 0, g, width, 1 );
 		g += gridCellSize;
 	}
 
 	for( var g = -(x % gridCellSize); g < width; )
 	{
-		ctx.moveTo( g, 0 );
-		ctx.lineTo( g, height );
+		ctx.fillRect( g, 0, 1, height );
 		g += gridCellSize;
 	}
-
-	ctx.stroke();
 }
 
 function draw()
@@ -1284,6 +1279,8 @@ function nextLevel()
 
 function run()
 {
+	requestAnimFrame( run );
+
 	now = new Date().getTime();
 	factor = (now-last)/16;
 	last = now;
@@ -1311,8 +1308,6 @@ function run()
 	}
 
 	draw();
-
-	requestAnimFrame( run );
 }
 
 function setPointers( ev, down )
