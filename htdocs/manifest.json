@@ -1,11 +1,12 @@
 {
-	"name": "GalEx",
-	"description": "A fast game about delivering mail between worlds.",
-	"version": "1.0.1",
 	"manifest_version": 2,
+	"name": "GalEx",
+	"version": "1.0.2",
+	"description": "A fast game about delivering mail between worlds.",
 	"icons": {
 		"128": "icon.png"
 	},
+	"offline_enabled": true,
 	"app": {
 		"launch": {
 			"web_url": "http://galex.markusfisch.de/"
