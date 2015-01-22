@@ -29,6 +29,45 @@ canvas
 	z-index: 1;
 }
 
+@-webkit-keyframes loading
+{
+	from { -webkit-transform: translateX( -50% ) rotate( 0deg ); }
+	to { -webkit-transform: translateX( -50% ) rotate( 360deg ); }
+}
+@-moz-keyframes loading
+{
+	from { -moz-transform: translateX( -50% ) rotate( 0deg ); }
+	to { -moz-transform: translateX( -50% ) rotate( 360deg ); }
+}
+@-o-keyframes loading
+{
+	from { -o-transform: translateX( -50% ) rotate( 0deg ); }
+	to { -o-transform: translateX( -50% ) rotate( 360deg ); }
+}
+@keyframes loading
+{
+	from { transform: translateX( -50% ) rotate( 0deg ); }
+	to { transform: translateX( -50% ) rotate( 360deg ); }
+}
+
+.Loading:after
+{
+	content: '';
+	position: fixed;
+	left: 50%; top: -2.5em;
+	width: 1em;
+	height: 1em;
+	border: .2em solid black;
+	-webkit-transform-origin: 50% 50%;
+	-moz-transform-origin: 50% 50%;
+	-o-transform-origin: 50% 50%;
+	transform-origin: 50% 50%;
+	-webkit-animation: loading 1s linear infinite;
+	-moz-animation: loading 1s linear infinite;
+	-o-animation: loading 1s linear infinite;
+	animation: loading 1s linear infinite;
+}
+
 .Overlay
 {
 	position: fixed;
@@ -49,7 +88,8 @@ canvas
 	position: relative;
 	top: 50%;
 	-webkit-transform: translateY( -50% );
-	-ms-transform: translateY( -50% );
+	-moz-transform: translateY( -50% );
+	-o-transform: translateY( -50% );
 	transform: translateY( -50% );
 	max-width: 22em;
 	margin: 0 auto; padding: 0;
@@ -128,7 +168,7 @@ canvas
 <body>
 <div id="Message" class="Overlay">
 	<div class="Center">
-		<div id="MessageText" class="Text">Initializing...</div>
+		<div id="MessageText" class="Text Loading">Initializing...</div>
 	</div>
 </div>
 <script>
@@ -1593,7 +1633,8 @@ function init()
 		return;
 	}
 
-	ctx.lineWidth = 1;
+	// remove Loading class
+	messageText.className = "Text";
 
 	debrisInit();
 	exhaustsInit();
@@ -1641,7 +1682,7 @@ function load()
 		return;
 	}
 
-	setMessage( "Loading..." );
+	setMessage( "Downloading..." );
 
 	last = new Date().getTime();
 
