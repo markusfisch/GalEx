@@ -57,11 +57,7 @@ canvas
 	left: 50%; top: -2.5em;
 	width: 1em;
 	height: 1em;
-	border: .2em solid black;
-	-webkit-transform-origin: 50% 50%;
-	-moz-transform-origin: 50% 50%;
-	-o-transform-origin: 50% 50%;
-	transform-origin: 50% 50%;
+	border: .2em solid #333;
 	-webkit-animation: loading 1s linear infinite;
 	-moz-animation: loading 1s linear infinite;
 	-o-animation: loading 1s linear infinite;
@@ -168,7 +164,7 @@ canvas
 <body>
 <div id="Message" class="Overlay">
 	<div class="Center">
-		<div id="MessageText" class="Text Loading">Initializing...</div>
+		<div id="MessageText" class="Text Loading">Initializing</div>
 	</div>
 </div>
 <script>
@@ -1597,7 +1593,7 @@ function scheduleResize()
 	if( shipAlive )
 	{
 		message.resizing = true;
-		showMessage( "Resizing..." );
+		showMessage( "Resizing" );
 	}
 
 	resizeTimer = setTimeout( resize, 200 );
@@ -1682,7 +1678,7 @@ function load()
 		return;
 	}
 
-	setMessage( "Downloading..." );
+	setMessage( "Downloading" );
 
 	last = new Date().getTime();
 
