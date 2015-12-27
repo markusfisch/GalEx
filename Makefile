@@ -18,5 +18,5 @@ live:
 
 $(HTDOCS)/atlas.png: $(SPRITES)
 	cd $(HTDOCS) && \
-		BORDER=2 mkatlas ../$(SPRITES) | \
+		MARGIN=2 mkatlas ../$(SPRITES) | \
 		patchatlas index.html
