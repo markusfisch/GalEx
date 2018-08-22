@@ -4,7 +4,9 @@ GalEx - Galactic Express
 A fast, casual game about delivering mail in space.
 Works on any device with a modern web browser.
 
-Originally written for [Ludum Dare](http://ludumdare.com) #30.
+![Screenshot](https://raw.githubusercontent.com/markusfisch/GalEx/gh-pages/screenshot.png)
+
+Written for [Ludum Dare](http://ludumdare.com) #30.
 Theme was __Connected Worlds__.
 
 View original
